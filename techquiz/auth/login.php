@@ -2,43 +2,32 @@
 require_once 'db.php';
 
 $error = '';
-$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['confirm'] ?? '';
 
-    if (!$username || !$email || !$password || !$confirm) {
-        $error = "Please fill in all fields.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid email address.";
-    } elseif (strlen($password) < 6) {
-        $error = "Password must be at least 6 characters.";
-    } elseif ($password !== $confirm) {
-        $error = "Passwords do not match.";
-    } else {
-        // Check duplicate
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-        $stmt->bind_param("ss", $username, $email);
+    if ($username && $password) {
+        $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ? OR email = ?");
+        $stmt->bind_param("ss", $username, $username);
         $stmt->execute();
-        $stmt->store_result();
+        $result = $stmt->get_result();
 
-        if ($stmt->num_rows > 0) {
-            $error = "Username or email already exists.";
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $ins  = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $ins->bind_param("sss", $username, $email, $hash);
-            if ($ins->execute()) {
-                $success = "Account created! <a href='login.php'>Login now</a>";
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['username'] = $row['username'];
+                header("Location: index.php");
+                exit;
             } else {
-                $error = "Registration failed. Please try again.";
+                $error = "Invalid password.";
             }
-            $ins->close();
+        } else {
+            $error = "User not found.";
         }
         $stmt->close();
+    } else {
+        $error = "Please fill in all fields.";
     }
 }
 ?>
@@ -47,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register – TechQuiz</title>
+    <title>Login – TechQuiz</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -102,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 16px;
             padding: 2.5rem;
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             position: relative;
             overflow: hidden;
         }
@@ -111,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--accent), var(--primary));
+            background: linear-gradient(90deg, var(--primary), var(--accent));
         }
         .auth-tag {
             font-family: 'Space Mono', monospace;
@@ -188,16 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.88rem;
             margin-bottom: 1.5rem;
         }
-        .alert-success {
-            background: rgba(0,255,136,0.1);
-            border: 1px solid rgba(0,255,136,0.3);
-            color: #00ff88;
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-size: 0.88rem;
-            margin-bottom: 1.5rem;
-        }
-        .alert-success a { color: #0ff; }
         footer {
             background: var(--dark2);
             border-top: 1px solid rgba(255,255,255,0.07);
@@ -214,52 +193,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a class="navbar-brand" href="index.php"><i class="bi bi-cpu me-1"></i>Tech<span>Quiz</span></a>
         <div class="ms-auto">
             <a class="nav-link d-inline" href="index.php">Home</a>
-            <a class="nav-link d-inline ms-3" href="login.php">Login</a>
+            <a class="nav-link d-inline ms-3" href="register.php">Register</a>
         </div>
     </div>
 </nav>
 
 <div class="auth-wrapper">
     <div class="auth-card">
-        <div class="auth-tag">// JOIN THE CHALLENGE</div>
-        <h2>Register</h2>
-        <p class="subtitle">Create your free account to start playing</p>
+        <div class="auth-tag">// WELCOME BACK</div>
+        <h2>Login</h2>
+        <p class="subtitle">Enter your credentials to continue</p>
 
         <?php if ($error): ?>
             <div class="alert-error"><i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
-        <?php if ($success): ?>
-            <div class="alert-success"><i class="bi bi-check-circle me-2"></i><?= $success ?></div>
-        <?php endif; ?>
 
         <form method="POST" action="">
             <div class="mb-3">
-                <label class="form-label">USERNAME</label>
-                <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">EMAIL</label>
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                <label class="form-label">USERNAME OR EMAIL</label>
+                <input type="text" name="username" class="form-control" placeholder="Enter username or email" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">PASSWORD</label>
-                <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" required>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label">CONFIRM PASSWORD</label>
-                <input type="password" name="confirm" class="form-control" placeholder="Repeat password" required>
-            </div>
-            <button type="submit" class="btn-auth"><i class="bi bi-person-check me-2"></i>Create Account</button>
+            <button type="submit" class="btn-auth"><i class="bi bi-box-arrow-in-right me-2"></i>Login</button>
         </form>
 
         <div class="auth-footer">
-            Already have an account? <a href="login.php">Login here</a>
+            Don't have an account? <a href="register.php">Register here</a>
         </div>
     </div>
 </div>
 
 <footer>
-    <p>© 2024 TechQuiz | All Rights Reserved | Contact: <a href="mailto:info@techquiz.com" style="color: #0ff; text-decoration:none;">info@techquiz.com</a></p>
+    <p>© 2026 TechQuiz | All Rights Reserved | Contact: <a href="mailto:info@techquiz.com" style="color: #0ff; text-decoration:none;">info@techquiz.com</a></p>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -443,9 +443,9 @@ require_once 'db.php';
                             <i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($_SESSION['username']) ?>
                         </span>
                     </li>
-                    <li class="nav-item"><a class="btn-nav-login nav-link" href="logout.php">Logout</a></li>
+                    <li class="nav-item"><a class="btn-nav-login nav-link" href="auth/logout.php">Logout</a></li>
                 <?php else: ?>
-                    <li class="nav-item"><a class="btn-nav-login nav-link" href="login.php">Login</a></li>
+                    <li class="nav-item"><a class="btn-nav-login nav-link" href="auth/login.php">Login</a></li>
                 <?php endif; ?>
             </ul>
         </div>
@@ -581,7 +581,7 @@ require_once 'db.php';
 
 <!-- Footer -->
 <footer>
-    <p>© 2024 TechQuiz | All Rights Reserved | Contact: <a href="mailto:info@techquiz.com">info@techquiz.com</a></p>
+    <p>© 2026 TechQuiz | All Rights Reserved | Contact: <a href="mailto:info@techquiz.com">info@techquiz.com</a></p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
