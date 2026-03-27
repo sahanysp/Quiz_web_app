@@ -277,21 +277,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="info-icon"><i class="bi bi-telephone"></i></div>
                         <div>
                             <div class="info-label">PHONE</div>
-                            <div class="info-value">+94 123 456 789</div>
+                            <div class="info-value">+94 702 715 811</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <div class="info-icon"><i class="bi bi-envelope"></i></div>
                         <div>
                             <div class="info-label">EMAIL</div>
-                            <div class="info-value">support@techquiz.com</div>
+                            <div class="info-value">sahan2003ysp@gmail.com</div>
                         </div>
                     </div>
                     <div class="info-card">
                         <div class="info-icon"><i class="bi bi-geo-alt"></i></div>
                         <div>
                             <div class="info-label">ADDRESS</div>
-                            <div class="info-value">+94 123 456 789</div>
+                            <div class="info-value">+94 702 715 811</div>
                         </div>
                     </div>
                 </div>
